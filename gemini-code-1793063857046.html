@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Juego de Memoria - Psicología</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: #f0f2f5;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+
+    p {
+      color: #7f8c8d;
+      margin-top: 0;
+    }
+
+    /* Tablero de cartas (5 columnas x 2 filas para 10 cartas) */
+    .tablero {
+      display: grid;
+      grid-template-columns: repeat(5, 120px);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    /* Estilo individual de cada carta */
+    .carta {
+      width: 120px;
+      height: 120px;
+      background-color: #34495e;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.95rem;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+      box-sizing: border-box;
+      color: transparent; /* Oculta el texto al inicio */
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s, transform 0.3s, color 0.3s;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    /* Estado 1: Carta EXPUESTA (revelada sin girar el texto al revés) */
+    .carta.revelada {
+      background-color: #ffffff;
+      color: #2c3e50; /* Muestra el concepto de psicología claramente */
+      border: 2px solid #34495e;
+      transform: scale(1.05); /* Pequeño zoom al exponerla */
+    }
+
+    /* Estado 2: Pareja encontrada */
+    .carta.acertada {
+      background-color: #27ae60; /* Verde éxito */
+      color: #ffffff;
+      border: 2px solid #27ae60;
+      cursor: default;
+      transform: scale(1);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Memoria Psicológica</h1>
+  <p>Encuentra las parejas de conceptos clave</p>
+  
+  <div class="tablero" id="tablero"></div>
+
+  <script>
+    // 1. Array con 5 conceptos de psicología duplicados (10 cartas en total)
+    const simbolos = [
+      'Empatía', 'Empatía', 
+      'Cognición', 'Cognición', 
+      'Inconsciente', 'Inconsciente', 
+      'Resiliencia', 'Resiliencia', 
+      'Gestalt', 'Gestalt'
+    ];
+
+    // Variables de control
+    let primeraCarta = null;
+    let segundaCarta = null;
+    let bloqueoTablero = false; // Evita clics rápidos mientras se comprueba una pareja
+
+    // 2. Mezclar las cartas aleatoriamente usando el truco del sort
+    simbolos.sort(() => Math.random() - 0.5);
+
+    // 3. Crear las cartas dinámicamente en el DOM con forEach
+    const tablero = document.getElementById('tablero');
+
+    simbolos.forEach((concepto) => {
+      const carta = document.createElement('div');
+      carta.classList.add('carta');
+      carta.dataset.valor = concepto; // Guardamos el valor oculto
+      carta.textContent = concepto;
+
+      // Evento de clic
+      carta.addEventListener('click', voltearCarta);
+      tablero.appendChild(carta);
+    });
+
+    // 4. Función para EXPONER / VOLTEAR una carta
+    function voltearCarta() {
+      // Si el tablero está bloqueado, o es la misma carta, o ya está acertada, no hace nada
+      if (bloqueoTablero || this === primeraCarta || this.classList.contains('acertada')) return;
+
+      // Exponer la carta seleccionada
+      this.classList.add('revelada');
+
+      if (!primeraCarta) {
+        // Es la primera carta seleccionada
+        primeraCarta = this;
+      } else {
+        // Es la segunda carta seleccionada
+        segundaCarta = this;
+        comprobarPareja();
+      }
+    }
+
+    // 5. Función para verificar si las DOS CARTAS SON IGUALES
+    function comprobarPareja() {
+      const esIgual = primeraCarta.dataset.valor === segundaCarta.dataset.valor;
+
+      if (esIgual) {
+        desactivarCartas();
+      } else {
+        ocultarCartas();
+      }
+    }
+
+    // Caso A: Son iguales (se quedan expuestas y verdes)
+    function desactivarCartas() {
+      primeraCarta.classList.add('acertada');
+      segundaCarta.classList.add('acertada');
+
+      resetearVariables();
+    }
+
+    // Caso B: No son iguales (se ocultan de nuevo tras 1 segundo)
+    function ocultarCartas() {
+      bloqueoTablero = true; // Bloquea clics extra
+
+      setTimeout(() => {
+        primeraCarta.classList.remove('revelada');
+        segundaCarta.classList.remove('revelada');
+
+        resetearVariables();
+      }, 1000); // 1 segundo de espera
+    }
+
+    // Reiniciar variables para el siguiente turno
+    function resetearVariables() {
+      [primeraCarta, segundaCarta] = [null, null];
+      bloqueoTablero = false;
+    }
+  </script>
+</body>
+</html>
